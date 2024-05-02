@@ -1,0 +1,59 @@
+function [Q,glb_flag] = compute_measure(func, graphs, output_ind, opt_inputs, n_nodes, n_networks, n_factors, wi_flag)
+
+%DEV NOTE: I am finishing this for WI designs to get something to Kevin but
+%I will have to revisit it with test data without an WI factor. I suspect
+%there are bugs in the indexing if using rank 3 tensors
+
+input_list = opt_inputs{:}; %concatenate optional inputs from cell
+
+%assign global/local labels
+n_out = nargout(func);
+outputs = cell(1,n_out);
+if isempty(input_list) %generate test value
+    [outputs{:}] = func(squeeze(graphs(:,:,1,1)));
+    test_val = outputs{output_ind};
+else
+    [outputs{:}] = func(squeeze(graphs(:,:,1,1)),input_list);
+    test_val = outputs{output_ind};
+end
+%dimensions vary based on measure and presence of WI factor
+if wi_flag && ~isscalar(test_val)
+    glb_flag = 0;
+else
+    glb_flag = 1;
+end
+
+
+if glb_flag
+    Q = zeros(n_networks,n_factors);
+    for net_ind = 1:n_networks
+        for fact_ind = 1:n_factors
+            W = squeeze(graphs(:,:,net_ind,fact_ind)); %get single adj mat
+            outputs = cell(1,n_out);
+            if isempty(input_list)
+                [outputs{:}] = func(W);    
+            else
+               [outputs{:}] = func(W, input_list);
+            end
+            Q(net_ind,fact_ind) = outputs{output_ind};
+        end
+    end
+
+
+else
+    Q = zeros(n_nodes,n_networks,n_factors);
+    for net_ind = 1:n_networks
+        for fact_ind = 1:n_factors
+            W = squeeze(graphs(:,:,net_ind,fact_ind)); %get single adj mat
+            outputs = cell(1,n_out);
+            if isempty(input_list)
+                [outputs{:}] = func(W);    
+            else
+               [outputs{:}] = func(W, input_list);
+            end
+            Q(:,net_ind,fact_ind) = outputs{output_ind};
+        end
+    end
+
+end
+

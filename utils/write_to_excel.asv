@@ -1,0 +1,12 @@
+function write_to_excel(struct,write_variable,file_out)
+
+f_names = fieldnames(struct);
+for file_ind = 1:length(f_names)
+    tab = table;
+    tab.Group = cell2mat(struct.group');
+    n_wi_fact = size(data,ndims(data));
+    for wi_ind = 1:n_wi_fact
+        wi_temp = [num2str(ii),' (',frequency_labels{ii},')'];
+        tab.(wi_temp) = ([measures.hc(:,ii); measures.sz(:,ii)]);
+    end
+end
